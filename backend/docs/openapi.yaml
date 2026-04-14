@@ -1,0 +1,106 @@
+openapi: 3.0.3
+info:
+  title: Capybara API
+  version: v1
+servers:
+  - url: /api/v1
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: object
+security:
+  - bearerAuth: []
+paths:
+  /furniture_makers/{bin_iin}/score:
+    get:
+      summary: Get furniture maker score by BIN/IIN
+      description: Allowed roles - production_staff, admin
+      parameters:
+        - name: bin_iin
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^\d{12}$'
+      responses:
+        "200":
+          description: Score payload
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  bin_iin:
+                    type: string
+                  score:
+                    type: integer
+                  score_band:
+                    type: string
+                  components:
+                    type: object
+                  insufficient_data:
+                    type: boolean
+                  calculated_at:
+                    type: string
+                    format: date-time
+        "404":
+          description: Maker not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /orders:
+    get:
+      summary: List orders with pagination
+      description: Allowed roles - customer, furniture_maker, production_staff, admin
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Paginated orders
+    post:
+      summary: Create order
+      description: Allowed roles - customer, furniture_maker, admin
+      responses:
+        "201":
+          description: Created
+  /orders/{id}/transition:
+    patch:
+      summary: Transition order status
+      description: Allowed roles - furniture_maker, production_staff, admin
+      responses:
+        "200":
+          description: Updated
+        "403":
+          description: Forbidden by role
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        "422":
+          description: Invalid transition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
