@@ -104,3 +104,39 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /orders/{order_id}/change_requests:
+    post:
+      summary: Create change request for order
+      description: Allowed roles - customer, furniture_maker, admin. Ownership scope enforced for customer/furniture_maker.
+      responses:
+        "201":
+          description: Created
+        "404":
+          description: Order not found or out of actor scope
+  /change_requests/{id}/approve:
+    patch:
+      summary: Approve change request
+      description: Allowed roles - production_staff, admin
+      responses:
+        "200":
+          description: Approved
+        "403":
+          description: Forbidden by role
+  /orders/{order_id}/acceptance_act:
+    post:
+      summary: Create acceptance act
+      description: Allowed roles - customer, furniture_maker, admin. Ownership scope enforced for customer/furniture_maker.
+      responses:
+        "201":
+          description: Created
+        "404":
+          description: Order not found or out of actor scope
+  /orders/{order_id}/review:
+    post:
+      summary: Create review
+      description: Allowed roles - customer, furniture_maker, admin. Ownership scope enforced for customer/furniture_maker.
+      responses:
+        "201":
+          description: Created
+        "404":
+          description: Order not found or out of actor scope
