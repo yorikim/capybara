@@ -40,6 +40,12 @@ npm install
 npm run dev
 ```
 
+In UI, select role preset to auto-fill demo token:
+- `admin-demo-token`
+- `production-demo-token`
+- `customer-demo-token`
+- `maker-demo-token`
+
 ## Frontend tests
 
 ```bash
