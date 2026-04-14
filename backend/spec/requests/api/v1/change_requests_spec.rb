@@ -47,4 +47,14 @@ RSpec.describe "Api::V1::ChangeRequests", type: :request do
 
     expect(response).to have_http_status(:not_found)
   end
+
+  it "does not allow customer to create change request for another customer order" do
+    order = Order.create!(furniture_maker: maker, title: "Order D", status: :published, customer_uid: "customer-b")
+
+    post "/api/v1/orders/#{order.id}/change_requests",
+         params: { change_request: { proposed_price: 150_000 } },
+         headers: api_headers_for(:customer, customer_uid: "customer-a")
+
+    expect(response).to have_http_status(:not_found)
+  end
 end
