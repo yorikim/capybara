@@ -3,6 +3,12 @@ import './App.css'
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000/api/v1'
 const DEFAULT_TOKEN = import.meta.env.VITE_API_TOKEN ?? 'capybara-dev-token'
+const ROLE_PRESETS = {
+  admin: 'admin-demo-token',
+  production_staff: 'production-demo-token',
+  customer: 'customer-demo-token',
+  furniture_maker: 'maker-demo-token',
+}
 const ORDER_FLOW = [
   'draft',
   'published',
@@ -28,14 +34,19 @@ async function apiRequest(path, { method = 'GET', token, body } = {}) {
 
   const data = await response.json().catch(() => ({}))
   if (!response.ok) {
-    const errorMessage = data?.error?.message ?? `HTTP ${response.status}`
-    throw new Error(errorMessage)
+    throw {
+      status: response.status,
+      code: data?.error?.code ?? 'unknown_error',
+      message: data?.error?.message ?? `HTTP ${response.status}`,
+      details: data?.error?.details ?? {},
+    }
   }
 
   return data
 }
 
 function App() {
+  const [role, setRole] = useState('admin')
   const [token, setToken] = useState(DEFAULT_TOKEN)
   const [makerBinIin, setMakerBinIin] = useState('123456789012')
   const [makerId, setMakerId] = useState('1')
@@ -43,7 +54,7 @@ function App() {
   const [orderId, setOrderId] = useState(null)
   const [orderStatus, setOrderStatus] = useState('draft')
   const [scoreCard, setScoreCard] = useState(null)
-  const [errorMessage, setErrorMessage] = useState('')
+  const [apiError, setApiError] = useState(null)
   const [loading, setLoading] = useState(false)
 
   const nextStatus = useMemo(() => {
@@ -54,14 +65,24 @@ function App() {
 
   const withUiState = async (callback) => {
     setLoading(true)
-    setErrorMessage('')
+    setApiError(null)
     try {
       await callback()
     } catch (error) {
-      setErrorMessage(error.message || 'Неизвестная ошибка API')
+      setApiError({
+        status: error.status ?? null,
+        code: error.code ?? 'unknown_error',
+        message: error.message ?? 'Неизвестная ошибка API',
+        details: error.details ?? {},
+      })
     } finally {
       setLoading(false)
     }
+  }
+
+  const applyRolePreset = (nextRole) => {
+    setRole(nextRole)
+    setToken(ROLE_PRESETS[nextRole] ?? '')
   }
 
   const fetchMakerScore = async () => {
@@ -126,7 +147,19 @@ function App() {
 
       <section className="card">
         <h2>Авторизация API</h2>
+        <div className="row">
+          <label htmlFor="role-select">Роль</label>
+          <select id="role-select" value={role} onChange={(event) => applyRolePreset(event.target.value)}>
+            <option value="admin">admin</option>
+            <option value="production_staff">production_staff</option>
+            <option value="customer">customer</option>
+            <option value="furniture_maker">furniture_maker</option>
+          </select>
+        </div>
         <input value={token} onChange={(event) => setToken(event.target.value)} placeholder="Bearer token" />
+        <p className="hint">
+          Demo token: <code>{ROLE_PRESETS[role]}</code>
+        </p>
       </section>
 
       <section className="card">
@@ -160,9 +193,14 @@ function App() {
         <p className="flow">{ORDER_FLOW.join(' -> ')}</p>
       </section>
 
-      {errorMessage && (
+      {apiError && (
         <section className="error">
-          Ошибка API: {errorMessage}
+          <p><strong>Ошибка API:</strong> {apiError.message}</p>
+          <p><strong>Код:</strong> {apiError.code}</p>
+          {apiError.status && <p><strong>HTTP:</strong> {apiError.status}</p>}
+          {Object.keys(apiError.details).length > 0 && (
+            <p><strong>Детали:</strong> {JSON.stringify(apiError.details)}</p>
+          )}
         </section>
       )}
     </main>
