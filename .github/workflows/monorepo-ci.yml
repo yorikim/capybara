@@ -20,9 +20,11 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: .ruby-version
-          bundler-cache: true
-          working-directory: backend
+          ruby-version: backend/.ruby-version
+          bundler-cache: false
+
+      - name: Install backend dependencies
+        run: bundle install
 
       - name: Prepare test database
         run: |
