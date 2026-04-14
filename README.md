@@ -108,3 +108,9 @@ Response:
 ```
 
 OpenAPI spec: `backend/docs/openapi.yaml`
+
+## CI
+
+GitHub Actions workflow: `.github/workflows/monorepo-ci.yml`
+- backend: test DB migration + `bundle exec rspec`
+- frontend: `npm ci`, `npm test`, `npm run build`
